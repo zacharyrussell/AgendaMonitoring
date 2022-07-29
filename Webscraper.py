@@ -6,6 +6,7 @@
 from cgi import test
 import threading
 import csv
+from keywords import getKeywordString 
 from requests.exceptions import ConnectionError
 from datetime import date, timedelta
 from distutils.command.upload import upload
@@ -14,16 +15,14 @@ import concurrent.futures
 # import pdfplumber
 from bs4 import BeautifulSoup
 from Attatchment import Attatchment
-from PDFReader import downloadPdf, parsePDF
 from Meeting import Meeting 
-from Upload_to_DB import tryCreateTables, uploadMeeting, deleteTable, testEntryCreation
 from CSVWriter import addToCSV
 
 
 skipUrls = []
 # Finds all links to meetings on Austin website. Then appends requested date
 # to URL, giving new web page that contains agendas 
-def get_Paragraphs(url, date, meetingArray):
+def getMeetingFromMaster(url, date, meetingArray):
     year = date[0:4]
     baseURL = "https://www.austintexas.gov"
     res = requests.get(url)
@@ -42,19 +41,16 @@ def get_Paragraphs(url, date, meetingArray):
 
 # Finds all attribute (a) sections of html and filters out those that contain
 # href properties 
-def findEntryData(address):
+def collectAttatchments(address):
     agendas = []
     videos = []
     transcripts = []
     dupCheck = []
     res = requests.get(address)
     soup = BeautifulSoup(res.content, "html.parser")
-
     titleText = soup.find("title").string
     titleText = titleText.replace("| AustinTexas.gov", "")
-
     for link in soup.find_all('a', href=True):
-
         if "Agenda" in str(link):
             #Austin website contains alot of redundant links flagged as "backup"
             if not "Backup" in str(link):
@@ -69,6 +65,7 @@ def findEntryData(address):
             title = "Transcript"
             attatchment = Attatchment(title, transcript)
             if transcript not in dupCheck:
+                print(transcript)
                 dupCheck.append(transcript)
                 transcripts.append(attatchment)
         elif "swagit" in str(link):
@@ -81,36 +78,24 @@ def findEntryData(address):
 
     return titleText, agendas, videos, transcripts
 
-
 def createMeetingObject(date, meetingArray):
     year = date[0:4]
-    
-    url = get_Paragraphs(f"https://www.austintexas.gov/department/city-council/{year}/{year}_master_index.htm", str(date), meetingArray)
+    url = getMeetingFromMaster(f"https://www.austintexas.gov/department/city-council/{year}/{year}_master_index.htm", str(date), meetingArray)
     if not url:
         #zprint(f"No meeting found on {date}")
         return 
-    
-    (titleText, agendas, videos, transcripts) = findEntryData(url)
+    (titleText, agendas, videos, transcripts) = collectAttatchments(url)
     meeting = Meeting("Austin", titleText, date, url, agendas, videos, transcripts)
     # for agenda in meeting.attatchments:
     #     print(agenda)
     print(f"Successfuly created meeting object for date {date}!")
     # meeting.printMeeting()
-    
-
     addMeetingToMeetingArray(meeting, meetingArray)
     return meeting
-    # tryCreateTables()
-    # uploadMeeting(meeting)
-    # testEntryCreation()
 
-
-    
 def daterange(start_date, end_date):
     for n in range(int((end_date - start_date).days)):
         yield start_date + timedelta(n)
-
-
 
 def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
     start_date = date(startY, startM, 1)
@@ -127,11 +112,13 @@ def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
 def addMeetingToMeetingArray(meeting, meetingArray):
     if meeting: 
         for attatchment in meeting.attatchments:
-            csvEntry = [meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url]
+            keywords = getKeywordString(attatchment.url)
+            csvEntry = [meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url, "None", keywords]
             meetingArray.append(csvEntry)
         for transcript in meeting.transcripts:
+            keywords = getKeywordString(transcript.url)
             video = meeting.videos[0]
-            csvEntry = [meeting.date, meeting.location, meeting.title, transcript.title, attatchment.url, video.title, video.url]
+            csvEntry = [meeting.date, meeting.location, meeting.title, transcript.title, transcript.url, video.url, keywords]
             meetingArray.append(csvEntry)
 
 def findMeetingsForDateRange(startY, startM, endY, endM):
@@ -140,25 +127,18 @@ def findMeetingsForDateRange(startY, startM, endY, endM):
     meetingArray = []
     for single_date in daterange(start_date, end_date):
         curDate = single_date.strftime("%Y%m%d")
-        meeting = createMeetingObject(str(curDate))
-        if meeting: 
-            for attatchment in meeting.attatchments:
-                csvEntry = [meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url]
-                meetingArray.append(csvEntry)
-            # for video in meeting.videos:
-            #     csvEntry = [meeting.date, meeting.location, meeting.title, video.title, video.url]
-            #     meetingArray.append(csvEntry)
-            for transcript in meeting.transcripts:
-                video = meeting.videos[0]
-                csvEntry = [meeting.date, meeting.location, meeting.title, transcript.title, attatchment.url, video.title, video.url]
-                meetingArray.append(csvEntry)
-            #meetingEntry = [meeting.date, meeting.url, meeting.attatchmentsToString()]
-            #print(curDate)
+        meeting = createMeetingObject(str(curDate), meetingArray)
+        # if meeting: 
+        #     for attatchment in meeting.attatchments:
+        #         csvEntry = [meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url]
+        #         meetingArray.append(csvEntry)
+        #     for transcript in meeting.transcripts:
+        #         video = meeting.videos[0]
+        #         csvEntry = [meeting.date, meeting.location, meeting.title, transcript.title, attatchment.url, video.title, video.url]
+        #         meetingArray.append(csvEntry)
     addToCSV(meetingArray)
     print("Successfully added all meetings to CSV!")
     print(f"There were {len(meetingArray)} agendas since {startM}-{startY}!")
-
-
 
 def addToCSV(meetings):
     with open('./csvTest', 'w') as f:
@@ -172,9 +152,9 @@ def addToCSV(meetings):
 if __name__ == '__main__':
     #date = input("Enter date to find agenda")
     #findMeetingsForDateRange(2022, 1, 2022, 7)
-    #createMeetingObject(date)
-    mThread_findMeetingsForDateRange(2021, 1, 2022, 7)
-
+    # meetingArray = []
+    # createMeetingObject(date, meetingArray)
+    mThread_findMeetingsForDateRange(2022, 6, 2022, 7)
 
 
 
