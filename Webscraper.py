@@ -41,7 +41,7 @@ def getMeetingFromMaster(url, date, meetingArray):
 
 # Finds all attribute (a) sections of html and filters out those that contain
 # href properties 
-def collectAttatchments(address):
+def collectAttatchments(address, year):
     agendas = []
     videos = []
     transcripts = []
@@ -56,6 +56,7 @@ def collectAttatchments(address):
             if not "Backup" in str(link):
                 agenda = link.get('href')
                 title = link.string
+                
                 attatchment = Attatchment(title, agenda)
                 if agenda not in dupCheck:
                     dupCheck.append(agenda)
@@ -84,7 +85,10 @@ def createMeetingObject(date, meetingArray):
     if not url:
         #zprint(f"No meeting found on {date}")
         return 
-    (titleText, agendas, videos, transcripts) = collectAttatchments(url)
+    (titleText, agendas, videos, transcripts) = collectAttatchments(url, year)
+    index = titleText.find(year)
+    titleText = titleText[index + len(year) + 1:]
+    # print(titleText)
     meeting = Meeting("Austin", titleText, date, url, agendas, videos, transcripts)
     # for agenda in meeting.attatchments:
     #     print(agenda)
@@ -101,6 +105,7 @@ def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
     start_date = date(startY, startM, 1)
     end_date = date(endY, endM, 2)
     meetingArray = []
+    meetingArray.append("Date,Location,Meeting,DocTitle,PDF,Video,Link,Keywords")
     futures = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(createMeetingObject, str(single_date.strftime("%Y%m%d")), meetingArray) 
@@ -150,12 +155,8 @@ def addToCSV(meetings):
     
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    #date = input("Enter date to find agenda")
+    # date = input("Enter date to find agenda")
     #findMeetingsForDateRange(2022, 1, 2022, 7)
     # meetingArray = []
     # createMeetingObject(date, meetingArray)
-    mThread_findMeetingsForDateRange(2022, 6, 2022, 7)
-
-
-
-
+    mThread_findMeetingsForDateRange(2022, 1, 2022, 7)

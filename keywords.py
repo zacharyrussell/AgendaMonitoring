@@ -5,6 +5,7 @@ import io
 import pdfplumber
 import requests
 import string
+import time
 
 def getKeywordString(PDF_URL):
     r = requests.get(PDF_URL)
@@ -22,6 +23,7 @@ def getKeywordString(PDF_URL):
         
         # Removing punctuations in string
         # Using loop + punctuation string
+
         for ele in all_text:
             if ele in punc:
                 all_text = all_text.replace(ele, "")
@@ -32,12 +34,10 @@ def getKeywordString(PDF_URL):
         #example.replace( /\n/g, " " )
         unique_words = set(all_text.split(' '))
         #print(unique_words)
-
         omittedWords = ['a', 'the', 'of', 'is', 'or', '']
         returnString = ''
         count = 0
         for word in unique_words:
-            
             if word not in omittedWords:
                 if count == 0:
                     returnString = returnString + word
@@ -45,14 +45,17 @@ def getKeywordString(PDF_URL):
                     returnString = returnString + '|' + word
                 count = count + 1
 
-
-        #print(returnString)
-
+        # print(returnString)
+        # print(f"Num words: {len(all_text)}")
         return returnString
 
 
 if __name__ == '__main__':
+    tic = time.perf_counter()
     getKeywordString('https://www.austintexas.gov/edims/document.cfm?id=383785')
+    toc = time.perf_counter()
+    print(f"Found keywords in {toc - tic:0.4f} seconds")
+    
 
 
 
