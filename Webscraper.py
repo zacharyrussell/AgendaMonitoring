@@ -6,12 +6,14 @@
 from cgi import test
 import threading
 import csv
+from Upload_to_DB import tryCreateTables, uploadMeeting
 from keywords import getKeywordString 
 from requests.exceptions import ConnectionError
 from datetime import date, timedelta
 from distutils.command.upload import upload
 import requests
 import concurrent.futures
+import DocumentEntry
 # import pdfplumber
 from bs4 import BeautifulSoup
 from Attatchment import Attatchment
@@ -113,6 +115,17 @@ def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
     addToCSV(meetingArray)
     print("Successfully added all meetings to CSV!")
     print(f"There were {len(meetingArray)} agendas since {startM}-{startY}!")
+    docEntryArray = []
+    for doc in meetingArray:
+        docEntry = DocumentEntry(doc[0], doc[1], doc[2], doc[3], doc[4], doc[5], doc[6])
+        tryCreateTables()
+        uploadMeeting(docEntry)
+    print("Uploaded to DB")
+    
+    
+
+
+
 
 def addMeetingToMeetingArray(meeting, meetingArray):
     if meeting: 
