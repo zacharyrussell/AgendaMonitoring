@@ -6,14 +6,14 @@
 from cgi import test
 import threading
 import csv
-from Upload_to_DB import tryCreateTables, uploadMeeting
+from Upload_to_DB import uploadDocument
 from keywords import getKeywordString 
 from requests.exceptions import ConnectionError
 from datetime import date, timedelta
 from distutils.command.upload import upload
 import requests
 import concurrent.futures
-import DocumentEntry
+from DocumentEntry import DocumentEntry
 # import pdfplumber
 from bs4 import BeautifulSoup
 from Attatchment import Attatchment
@@ -96,6 +96,31 @@ def createMeetingObject(date, meetingArray):
     #     print(agenda)
     print(f"Successfuly created meeting object for date {date}!")
     # meeting.printMeeting()
+    # # Date,Location,Meeting,DocTitle,PDF,Link,Keywords
+    print("Beginning upload")
+    if meeting:
+        print("Meeting true")
+        for attatchment in meeting.attatchments:
+            print("here")
+            print(attatchment.url)
+            keywords = getKeywordString(attatchment.url)
+            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url, "None", keywords)
+            print("AAAA")
+            print(docEntry.date)
+            uploadDocument(docEntry)
+            print("pdf uploaded")
+        for transcript in meeting.transcripts:
+            print("here")
+            print(transcript.url)
+            keywords = getKeywordString(transcript.url)
+            video = meeting.videos[0]
+            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, transcript.title, transcript.url, video.url, keywords)
+            print(docEntry.date)
+            uploadDocument(docEntry)
+            print("transcript uploaded")
+    else:
+        print("Meeting is null")
+    print("passed")
     addMeetingToMeetingArray(meeting, meetingArray)
     return meeting
 
@@ -115,12 +140,7 @@ def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
     addToCSV(meetingArray)
     print("Successfully added all meetings to CSV!")
     print(f"There were {len(meetingArray)} agendas since {startM}-{startY}!")
-    docEntryArray = []
-    for doc in meetingArray:
-        docEntry = DocumentEntry(doc[0], doc[1], doc[2], doc[3], doc[4], doc[5], doc[6])
-        tryCreateTables()
-        uploadMeeting(docEntry)
-    print("Uploaded to DB")
+
     
     
 
@@ -154,8 +174,8 @@ def findMeetingsForDateRange(startY, startM, endY, endM):
         #         video = meeting.videos[0]
         #         csvEntry = [meeting.date, meeting.location, meeting.title, transcript.title, attatchment.url, video.title, video.url]
         #         meetingArray.append(csvEntry)
-    addToCSV(meetingArray)
-    print("Successfully added all meetings to CSV!")
+    # addToCSV(meetingArray)
+    # print("Successfully added all meetings to CSV!")
     print(f"There were {len(meetingArray)} agendas since {startM}-{startY}!")
 
 def addToCSV(meetings):
@@ -168,8 +188,9 @@ def addToCSV(meetings):
     
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    # date = input("Enter date to find agenda")
-    #findMeetingsForDateRange(2022, 1, 2022, 7)
-    # meetingArray = []
-    # createMeetingObject(date, meetingArray)
-    mThread_findMeetingsForDateRange(2022, 1, 2022, 7)
+    # deleteTable()
+    date = input("Enter date to find agenda")
+    # #findMeetingsForDateRange(2022, 1, 2022, 7)
+    meetingArray = []
+    createMeetingObject(date, meetingArray)
+    # mThread_findMeetingsForDateRange(2022, 6, 2022, 7)

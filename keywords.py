@@ -19,7 +19,8 @@ def getKeywordString(PDF_URL):
             all_text = all_text + ' ' + single_page_text
         #print (all_text
         # initializing punctuations string
-        punc = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+        punc = ''' –”“’!()-[]{};:'"\,<>./?@#$%^&*_~'''
+        
         
         # Removing punctuations in string
         # Using loop + punctuation string
@@ -45,8 +46,8 @@ def getKeywordString(PDF_URL):
                     returnString = returnString + '|' + word
                 count = count + 1
 
-        # print(returnString)
-        # print(f"Num words: {len(all_text)}")
+        print(returnString)
+        print(f"Num words: {len(all_text)}")
         return returnString
 
 

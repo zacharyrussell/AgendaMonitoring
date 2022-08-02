@@ -3,11 +3,92 @@ import psycopg2
 from dotenv import load_dotenv
 
 load_dotenv()
+print("AAAA")
+import requests
 
-conn = psycopg2.connect(os.environ["DATABASE_URL"])
+def setupDB():
+    print("Starting request")
+    url = "https://agenda-1-agendas.harperdbcloud.com"
 
+    payload = "{\n    \"operation\": \"create_schema\",\n    \"schema\": \"dev\"\n}"
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
+    }
+
+    response = requests.request("POST", url, headers=headers, data = payload)
+
+    print(response.text.encode('utf8'))
+    print("Created Schema")
+
+    payload = "{\n    \"operation\": \"sql\",\n    \"sql\": \"SELECT * FROM dev.dog WHERE id = 1\"\n}"
+
+
+    payload = "{\n    \"operation\": \"create_table\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"hash_attribute\": \"id\"\n}"
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
+    }
+
+    response = requests.request("POST", url, headers=headers, data = payload)
+
+    print(response.text.encode('utf8'))
+    print("Created Table")
+
+
+
+
+    def createAttribute(att):
+        payload = (f"{{\n    \"operation\": \"create_attribute\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"attribute\": \"{att}\"\n}}")
+        response = requests.request("POST", url, headers=headers, data = payload)
+        print(response.text.encode('utf8'))
+        print(f"Created attribute {att}")
+        return response
+
+    # Date,Location,Meeting,DocTitle,PDF,Link,Keywords
+    createAttribute("date")
+    createAttribute("location")
+    createAttribute("meeting")
+    createAttribute("doctitle")
+    createAttribute("pdf")
+    createAttribute("link")
+    createAttribute("keywords")
+
+
+
+
+
+def uploadDocument(documentEntry):
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    # (documentEntry.date, documentEntry.location, documentEntry.doctitle, documentEntry.pdf, documentEntry.link, documentEntry.keywords))
+    url = "https://agenda-1-agendas.harperdbcloud.com"
+
+    # payload = "{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.dog (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('20220609', 'Austin, Texas', 'Town hall', 'Agenda meeting minutes', 'https://google.com', 'https://youtube.com', 'ahhh | wwwww  | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww')\"\n}"
+    payload = (f"{{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.agendas (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('{documentEntry.date}', '{documentEntry.location}', '{documentEntry.meeting}', '{documentEntry.doctitle}', '{documentEntry.pdf}', '{documentEntry.vidlink}', '{documentEntry.keywords}')\"\n}}")
+    print(payload)
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
+    }
+    response = requests.request("POST", url, headers=headers, data = payload)
+    
+    print(response.text.encode('utf8'))
+
+
+
+
+
+# conn = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=60)
+
+# with conn.cursor() as cur:
+#     cur.execute("SELECT now()")
+#     res = cur.fetchall()
+#     conn.commit()
+#     print(res)
+# print("done")
 
 def deleteTable():
+    print("deleting table")
     with conn.cursor() as cur:
         cur.execute("DROP TABLE meetings;")
         #res = cur.fetchall()
@@ -33,6 +114,7 @@ def tryCreateTables():
         print("Successfully tried to create database!!")
 
 def uploadMeeting(documentEntry):
+    print("Attempting upload")
     with conn.cursor() as cur:
         #cur.execute(f"INSERT INTO meetings VALUES ('Austin, TX',{meeting.date}, {meeting.url}, {meeting.attatchmentsToString()});")
         cur.execute("INSERT INTO meetings (date, location, meeting, doctitle, pdf, link, keywords) VALUES(%s,%s,%s,%s,%s,%s,%s);", 
