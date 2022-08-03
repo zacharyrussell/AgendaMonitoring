@@ -1,6 +1,11 @@
+from distutils.command.upload import upload
 import os
 import psycopg2
 from dotenv import load_dotenv
+import sys
+from DocumentEntry import DocumentEntry
+from keywords import getKeywordString
+from keytest import testLength
 
 load_dotenv()
 print("AAAA")
@@ -55,27 +60,30 @@ def setupDB():
     createAttribute("keywords")
 
 
+# https://www.austintexas.gov/edims/document.cfm?id=384455 <-- small doc
 
-
+testDoc = DocumentEntry("20220609", "Austin,Texas",
+ "Energy Austin", "Transcript",
+  "https://www.austintexas.gov/edims/document.cfm?id=384184",
+   "https://www.austintexas.gov/edims/document.cfm?id=384184",
+    getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=384184"))
 
 def uploadDocument(documentEntry):
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    # (documentEntry.date, documentEntry.location, documentEntry.doctitle, documentEntry.pdf, documentEntry.link, documentEntry.keywords))
     url = "https://agenda-1-agendas.harperdbcloud.com"
-
-    # payload = "{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.dog (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('20220609', 'Austin, Texas', 'Town hall', 'Agenda meeting minutes', 'https://google.com', 'https://youtube.com', 'ahhh | wwwww  | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww | wwwww')\"\n}"
-    payload = (f"{{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.agendas (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('{documentEntry.date}', '{documentEntry.location}', '{documentEntry.meeting}', '{documentEntry.doctitle}', '{documentEntry.pdf}', '{documentEntry.vidlink}', '{documentEntry.keywords}')\"\n}}")
-    print(payload)
+    payload = f"{{\n    \"operation\": \"insert\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"records\": [\n        {{\n            \"id\": 1,\n            \"date\": \"{documentEntry.date}\",\n            \"doctitle\": \"{documentEntry.doctitle}\",\n            \"keywords\": \"{documentEntry.keywords}\",\n  \"link\": \"{documentEntry.vidlink}\" ,\n \"location\": \"{documentEntry.location}\",\n  \"meeting\": \"{documentEntry.meeting}\",\n \"pdf\": \"{documentEntry.pdf}\"\n   }}\n    ]\n}}"
+    # payload = (f"{{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.agendas (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('{documentEntry.date}', '{documentEntry.location}', '{documentEntry.meeting}', '{documentEntry.doctitle}', '{documentEntry.pdf}', '{documentEntry.vidlink}', '{documentEntry.keywords}')\"\n}}")
+    print(sys.getsizeof(testLength))
+    print(testLength[145:155])
     headers = {
     'Content-Type': 'application/json',
     'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
     }
+    # print(payload[178:190])
     response = requests.request("POST", url, headers=headers, data = payload)
-    
     print(response.text.encode('utf8'))
 
 
-
+uploadDocument(testDoc)
 
 
 # conn = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=60)

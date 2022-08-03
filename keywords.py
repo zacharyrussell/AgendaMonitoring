@@ -1,4 +1,5 @@
 # importing required modules
+from bz2 import compress
 from ctypes import sizeof
 # creating a pdf file object
 import io
@@ -6,7 +7,8 @@ import pdfplumber
 import requests
 import string
 import time
-
+import zlib
+import sys
 def getKeywordString(PDF_URL):
     r = requests.get(PDF_URL)
     f = io.BytesIO(r.content)
@@ -19,7 +21,7 @@ def getKeywordString(PDF_URL):
             all_text = all_text + ' ' + single_page_text
         #print (all_text
         # initializing punctuations string
-        punc = ''' –”“’!()-[]{};:'"\,<>./?@#$%^&*_~'''
+        punc = '''á• –”“’!()-[]{};:'"\,<>./?@#$%^&*_~`¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ'''
         
         
         # Removing punctuations in string
@@ -46,14 +48,18 @@ def getKeywordString(PDF_URL):
                     returnString = returnString + '|' + word
                 count = count + 1
 
-        print(returnString)
+        # print(returnString)
         print(f"Num words: {len(all_text)}")
+        compressed = zlib.compress(returnString.encode())
         return returnString
 
 
 if __name__ == '__main__':
     tic = time.perf_counter()
-    getKeywordString('https://www.austintexas.gov/edims/document.cfm?id=383785')
+    # getKeywordString('https://www.austintexas.gov/edims/document.cfm?id=383785')
+    
+    # getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=385572")
+    getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=383786")
     toc = time.perf_counter()
     print(f"Found keywords in {toc - tic:0.4f} seconds")
     

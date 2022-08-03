@@ -1,0 +1,17 @@
+{
+    "operation": "insert",
+    "schema": "dev",
+    "table": "agendas",
+    "records": [
+        {
+            "id": 1,
+            "date": "20220609",
+            "doctitle": "Transcript",
+            "keywords": "request|78701|assistance|call|compliance|access|council|users|room|route|taken|900|may|provided|center|am|with|meet|quorum|equal|for|attend|be|austin|2022|communications|members|at|and|tx|americans|city|present|to|discuss|no|reasonable|modifications|june|press|on|action|committed|month|heritage|through|wednesday|e2002|711|aapi|tty|5129742210|conference|please|disabilities|capitol|legislative|state|congress|texas|ave|1100|upon|act|will|1",
+            "link": "https://www.austintexas.gov/edims/document.cfm?id=384184",
+            "location": "Austin,Texas",
+            "meeting": "Energy Austin",
+            "pdf": "https://www.austintexas.gov/edims/document.cfm?id=384184"
+        }
+    ]
+}
