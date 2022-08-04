@@ -67,9 +67,24 @@ def setupDB():
 #    "https://www.austintexas.gov/edims/document.cfm?id=384184",
 #     getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=384184"))
 
-def uploadDocument(documentEntry):
+
+
+def createAttribute(att):
     url = "https://agenda-1-agendas.harperdbcloud.com"
-    payload = f"{{\n    \"operation\": \"insert\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"records\": [\n        {{\n                      \"date\": \"{documentEntry.date}\",\n            \"doctitle\": \"{documentEntry.doctitle}\",\n            \"keywords\": \"{documentEntry.keywords}\",\n  \"link\": \"{documentEntry.vidlink}\" ,\n \"location\": \"{documentEntry.location}\",\n  \"meeting\": \"{documentEntry.meeting}\",\n \"pdf\": \"{documentEntry.pdf}\",\n \"wholeText\": \"{documentEntry.wholeText}\"   }}\n    ]\n}}"
+    headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
+    }
+    payload = (f"{{\n    \"operation\": \"drop_attribute\",\n    \"schema\": \"dev\",\n    \"table\": \"wholeText\",\n    \"attribute\": \"{att}\"\n}}")
+    response = requests.request("POST", url, headers=headers, data = payload)
+    print(response.text.encode('utf8'))
+    print(f"Created attribute {att}")
+    return response
+
+def uploadDocument(documentEntry):
+    hash = documentEntry.getHash()
+    url = "https://agenda-1-agendas.harperdbcloud.com"
+    payload = f"{{\n    \"operation\": \"upsert\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"records\": [\n        {{\n                      \"date\": \"{documentEntry.date}\",\n            \"doctitle\": \"{documentEntry.doctitle}\",\n            \"keywords\": \"{documentEntry.keywords}\",\n  \"link\": \"{documentEntry.vidlink}\" ,\n \"location\": \"{documentEntry.location}\",\n  \"meeting\": \"{documentEntry.meeting}\",\n \"pdf\": \"{documentEntry.pdf}\",\n \"wholeText\": \"{hash}\"   }}\n    ]\n}}"
     # payload = (f"{{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.agendas (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('{documentEntry.date}', '{documentEntry.location}', '{documentEntry.meeting}', '{documentEntry.doctitle}', '{documentEntry.pdf}', '{documentEntry.vidlink}', '{documentEntry.keywords}')\"\n}}")
     headers = {
     'Content-Type': 'application/json',
@@ -77,8 +92,11 @@ def uploadDocument(documentEntry):
     }
     # print(payload[178:190])
     response = requests.request("POST", url, headers=headers, data = payload)
-    print(response.text.encode('utf8'))
+    print(f"Agenda: {response.text.encode('utf8')}")
 
+    payload = f"{{\n    \"operation\": \"upsert\",\n    \"schema\": \"dev\",\n    \"table\": \"wholeText\",\n    \"records\": [\n        {{\n                      \"id\": \"{hash}\",\n            \"wholeText\": \"{documentEntry.wholeText}\"   }}\n    ]\n}}"
+    response = requests.request("POST", url, headers=headers, data = payload)
+    print(f"Text: {response.text.encode('utf8')}")
 
 # uploadDocument(testDoc)
 

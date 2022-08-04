@@ -101,6 +101,7 @@ def createMeetingObject(date, meetingArray):
         for attatchment in meeting.attatchments:
             keywords, allText = getKeywordString(attatchment.url)
             docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url, "None", allText, keywords)
+            print(docEntry.getHash())
             uploadDocument(docEntry)
             print("pdf uploaded")
         for transcript in meeting.transcripts:
