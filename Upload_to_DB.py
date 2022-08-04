@@ -8,7 +8,6 @@ from keywords import getKeywordString
 from keytest import testLength
 
 load_dotenv()
-print("AAAA")
 import requests
 
 def setupDB():
@@ -62,18 +61,16 @@ def setupDB():
 
 # https://www.austintexas.gov/edims/document.cfm?id=384455 <-- small doc
 
-testDoc = DocumentEntry("20220609", "Austin,Texas",
- "Energy Austin", "Transcript",
-  "https://www.austintexas.gov/edims/document.cfm?id=384184",
-   "https://www.austintexas.gov/edims/document.cfm?id=384184",
-    getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=384184"))
+# testDoc = DocumentEntry("20220609", "Austin,Texas",
+#  "Energy Austin", "Transcript",
+#   "https://www.austintexas.gov/edims/document.cfm?id=384184",
+#    "https://www.austintexas.gov/edims/document.cfm?id=384184",
+#     getKeywordString("https://www.austintexas.gov/edims/document.cfm?id=384184"))
 
 def uploadDocument(documentEntry):
     url = "https://agenda-1-agendas.harperdbcloud.com"
-    payload = f"{{\n    \"operation\": \"insert\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"records\": [\n        {{\n            \"id\": 1,\n            \"date\": \"{documentEntry.date}\",\n            \"doctitle\": \"{documentEntry.doctitle}\",\n            \"keywords\": \"{documentEntry.keywords}\",\n  \"link\": \"{documentEntry.vidlink}\" ,\n \"location\": \"{documentEntry.location}\",\n  \"meeting\": \"{documentEntry.meeting}\",\n \"pdf\": \"{documentEntry.pdf}\"\n   }}\n    ]\n}}"
+    payload = f"{{\n    \"operation\": \"insert\",\n    \"schema\": \"dev\",\n    \"table\": \"agendas\",\n    \"records\": [\n        {{\n                      \"date\": \"{documentEntry.date}\",\n            \"doctitle\": \"{documentEntry.doctitle}\",\n            \"keywords\": \"{documentEntry.keywords}\",\n  \"link\": \"{documentEntry.vidlink}\" ,\n \"location\": \"{documentEntry.location}\",\n  \"meeting\": \"{documentEntry.meeting}\",\n \"pdf\": \"{documentEntry.pdf}\",\n \"wholeText\": \"{documentEntry.wholeText}\"   }}\n    ]\n}}"
     # payload = (f"{{\n    \"operation\": \"sql\",\n    \"sql\": \"INSERT INTO dev.agendas (date, location, meeting, doctitle, pdf, link, keywords) VALUE ('{documentEntry.date}', '{documentEntry.location}', '{documentEntry.meeting}', '{documentEntry.doctitle}', '{documentEntry.pdf}', '{documentEntry.vidlink}', '{documentEntry.keywords}')\"\n}}")
-    print(sys.getsizeof(testLength))
-    print(testLength[145:155])
     headers = {
     'Content-Type': 'application/json',
     'Authorization': 'Basic emFjaDpwaG9iaWNoaXBwbzQzMQ=='
@@ -83,7 +80,7 @@ def uploadDocument(documentEntry):
     print(response.text.encode('utf8'))
 
 
-uploadDocument(testDoc)
+# uploadDocument(testDoc)
 
 
 # conn = psycopg2.connect(os.environ["DATABASE_URL"], connect_timeout=60)

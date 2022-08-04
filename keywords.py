@@ -21,7 +21,7 @@ def getKeywordString(PDF_URL):
             all_text = all_text + ' ' + single_page_text
         #print (all_text
         # initializing punctuations string
-        punc = '''á• –”“’!()-[]{};:'"\,<>./?@#$%^&*_~`¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ'''
+        punc = '''♪♪…• –”“’!()-[]{};:'"\,<>./?@#$%^&*_~`¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ'''
         
         
         # Removing punctuations in string
@@ -49,9 +49,9 @@ def getKeywordString(PDF_URL):
                 count = count + 1
 
         # print(returnString)
-        print(f"Num words: {len(all_text)}")
+        # print(f"Num words: {len(all_text)}")
         compressed = zlib.compress(returnString.encode())
-        return returnString
+        return returnString, all_text
 
 
 if __name__ == '__main__':

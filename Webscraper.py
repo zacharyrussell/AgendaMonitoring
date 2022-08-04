@@ -68,7 +68,7 @@ def collectAttatchments(address, year):
             title = "Transcript"
             attatchment = Attatchment(title, transcript)
             if transcript not in dupCheck:
-                print(transcript)
+                # print(transcript)
                 dupCheck.append(transcript)
                 transcripts.append(attatchment)
         elif "swagit" in str(link):
@@ -97,30 +97,20 @@ def createMeetingObject(date, meetingArray):
     print(f"Successfuly created meeting object for date {date}!")
     # meeting.printMeeting()
     # # Date,Location,Meeting,DocTitle,PDF,Link,Keywords
-    print("Beginning upload")
     if meeting:
-        print("Meeting true")
         for attatchment in meeting.attatchments:
-            print("here")
-            print(attatchment.url)
-            keywords = getKeywordString(attatchment.url)
-            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url, "None", keywords)
-            print("AAAA")
-            print(docEntry.date)
+            keywords, allText = getKeywordString(attatchment.url)
+            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, attatchment.title, attatchment.url, "None", allText, keywords)
             uploadDocument(docEntry)
             print("pdf uploaded")
         for transcript in meeting.transcripts:
-            print("here")
-            print(transcript.url)
-            keywords = getKeywordString(transcript.url)
+            keywords, allText = getKeywordString(transcript.url)
             video = meeting.videos[0]
-            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, transcript.title, transcript.url, video.url, keywords)
-            print(docEntry.date)
+            docEntry = DocumentEntry(meeting.date, meeting.location, meeting.title, transcript.title, transcript.url, video.url, allText, keywords)
             uploadDocument(docEntry)
             print("transcript uploaded")
     else:
         print("Meeting is null")
-    print("passed")
     addMeetingToMeetingArray(meeting, meetingArray)
     return meeting
 
@@ -142,11 +132,6 @@ def mThread_findMeetingsForDateRange(startY, startM, endY, endM):
     print(f"There were {len(meetingArray)} agendas since {startM}-{startY}!")
 
     
-    
-
-
-
-
 def addMeetingToMeetingArray(meeting, meetingArray):
     if meeting: 
         for attatchment in meeting.attatchments:
@@ -189,8 +174,9 @@ def addToCSV(meetings):
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # deleteTable()
-    date = input("Enter date to find agenda")
+    # date = input("Enter date to find agenda")
     # #findMeetingsForDateRange(2022, 1, 2022, 7)
-    meetingArray = []
-    createMeetingObject(date, meetingArray)
-    # mThread_findMeetingsForDateRange(2022, 6, 2022, 7)
+    # meetingArray = []
+    # createMeetingObject(date, meetingArray)
+    mThread_findMeetingsForDateRange(2022, 6, 2022, 7)
+    print("All Done")
